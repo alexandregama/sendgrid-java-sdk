@@ -1,4 +1,4 @@
-package com.sendgrid;
+package com.sendgrid.api.client;
 
 public class SendGridApiKey {
 

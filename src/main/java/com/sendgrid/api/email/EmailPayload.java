@@ -1,4 +1,4 @@
-package com.sendgrid;
+package com.sendgrid.api.email;
 
 import static java.util.Collections.unmodifiableList;
 

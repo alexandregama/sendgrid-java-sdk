@@ -1,4 +1,4 @@
-package com.sendgrid;
+package com.sendgrid.internal.exception;
 
 public class SendGridException extends RuntimeException {
 

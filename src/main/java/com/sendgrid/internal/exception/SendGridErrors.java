@@ -1,4 +1,4 @@
-package com.sendgrid;
+package com.sendgrid.internal.exception;
 
 import java.util.List;
 

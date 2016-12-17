@@ -1,10 +1,16 @@
-package com.sendgrid;
+package com.sendgrid.internal.email;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
+import com.sendgrid.api.client.EmailApi;
+import com.sendgrid.api.client.SendGridApiKey;
+import com.sendgrid.api.email.EmailPayload;
+import com.sendgrid.internal.exception.SendGridErrors;
+import com.sendgrid.internal.exception.SendGridException;
 
 class JerseyEmailApi implements EmailApi {
 

@@ -1,4 +1,4 @@
-package com.sendgrid;
+package com.sendgrid.api.email;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;

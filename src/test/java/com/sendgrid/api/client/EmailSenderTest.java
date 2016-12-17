@@ -1,4 +1,4 @@
-package com.sendgrid;
+package com.sendgrid.api.client;
 
 import java.io.StringWriter;
 
@@ -7,43 +7,45 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.sendgrid.EmailContent.EmailMimeType;
+import com.sendgrid.api.client.SendGridApiKey;
+import com.sendgrid.api.email.EmailContent;
+import com.sendgrid.api.email.EmailInformation;
+import com.sendgrid.api.email.EmailPayload;
+import com.sendgrid.api.email.Personalization;
+import com.sendgrid.api.email.EmailContent.EmailMimeType;
+import com.sendgrid.internal.email.DefaultEmailClientApi;
+import com.sendgrid.internal.exception.SendGridException;
 
 public class EmailSenderTest {
 
-	private SendGridApiKey key;
+	private DefaultEmailClientApi client;
 
 	@Before
 	public void setUp() {
-		key = new SendGridApiKey("YOUR_KEY");
+		SendGridApiKey key = new SendGridApiKey("YOUR_KEY");
+		client = new DefaultEmailClientApi(key);
 	}
 	
 	@Test
 	public void shouldSendAnEmailToSendGrid() throws Exception {
-		EmailApi emailApi = new JerseyEmailApi(key);
-
 		EmailPayload payload = createEmailPayload();
 		
-		emailApi.sendEmail(payload);
+		client.emailApi().sendEmail(payload);
 	}
 	
 	@Test(expected = SendGridException.class)
 	public void shouldThrowsAnExceptionWhenTryingToSendAnEmailWithoutEmailTo() throws Exception {
-		EmailApi emailApi = new JerseyEmailApi(key);
-		
 		EmailPayload payload = createEmailWithoutEmailToPayload();
 		
-		emailApi.sendEmail(payload);
+		client.emailApi().sendEmail(payload);
 	}
 	
 	@Test
 	public void shouldThrowsAnExceptionWithSendGridErrorsWhenTryingToSendAnEmailWithoutEmailTo() throws Exception {
-		EmailApi emailApi = new JerseyEmailApi(key);
-		
 		EmailPayload payload = createEmailWithoutEmailToPayload();
 		
 		try {
-			emailApi.sendEmail(payload);
+			client.emailApi().sendEmail(payload);
 		} catch (SendGridException e) {
 			System.out.println(e.getErrors());
 		}
