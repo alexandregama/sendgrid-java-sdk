@@ -20,11 +20,33 @@ public class EmailSenderTest {
 	
 	@Test
 	public void shouldSendAnEmailToSendGrid() throws Exception {
-		EmailSenderApi emailApi = new JerseyEmailSenderApi(key);
+		EmailApi emailApi = new JerseyEmailApi(key);
 
 		EmailPayload payload = createEmailPayload();
 		
 		emailApi.sendEmail(payload);
+	}
+	
+	@Test(expected = SendGridException.class)
+	public void shouldThrowsAnExceptionWhenTryingToSendAnEmailWithoutEmailTo() throws Exception {
+		EmailApi emailApi = new JerseyEmailApi(key);
+		
+		EmailPayload payload = createEmailWithoutEmailToPayload();
+		
+		emailApi.sendEmail(payload);
+	}
+	
+	@Test
+	public void shouldThrowsAnExceptionWithSendGridErrorsWhenTryingToSendAnEmailWithoutEmailTo() throws Exception {
+		EmailApi emailApi = new JerseyEmailApi(key);
+		
+		EmailPayload payload = createEmailWithoutEmailToPayload();
+		
+		try {
+			emailApi.sendEmail(payload);
+		} catch (SendGridException e) {
+			System.out.println(e.getErrors());
+		}
 	}
 
 	@Test
@@ -49,6 +71,30 @@ public class EmailSenderTest {
 		
 		EmailInformation emailTo = new EmailInformation();
 		emailTo.setEmail("alexandre.gama@elo7.com");
+		emailTo.setName("Gama");
+		personalization.addEmailTo(emailTo);
+		
+		payload.addPersonalization(personalization);
+		
+		payload.setSubject("Its working man!");
+		
+		EmailContent content = new EmailContent();
+		content.setType(EmailMimeType.TEXT_HTML);
+		content.setValue("Its really awesome");
+		payload.addContent(content);
+		return payload;
+	}
+	
+	private EmailPayload createEmailWithoutEmailToPayload() {
+		EmailPayload payload = new EmailPayload();
+		EmailInformation emailFrom = new EmailInformation();
+		emailFrom.setEmail("alexandre.gama.lima@gmail.com");
+		payload.setEmailFrom(emailFrom);
+		
+		Personalization personalization = new Personalization();
+		
+		EmailInformation emailTo = new EmailInformation();
+//		emailTo.setEmail("alexandre.gama@elo7.com");
 		emailTo.setName("Gama");
 		personalization.addEmailTo(emailTo);
 		

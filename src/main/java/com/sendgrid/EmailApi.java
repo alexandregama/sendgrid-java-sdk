@@ -1,6 +1,6 @@
 package com.sendgrid;
 
-public interface EmailSenderApi {
+public interface EmailApi {
 
 	void sendEmail(EmailPayload payload);
 
