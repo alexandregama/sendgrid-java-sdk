@@ -1,5 +1,7 @@
 package com.sendgrid.internal.exception;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -30,7 +32,11 @@ public class SendGridError {
 
 	@Override
 	public String toString() {
-		return "SendGridError [message=" + message + ", field=" + field + ", help=" + help + "]";
+		return toStringHelper(this)
+			.add("message", message)
+			.add("field", field)
+			.add("help", help)
+			.toString();
 	}
 
 }

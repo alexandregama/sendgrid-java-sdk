@@ -1,5 +1,7 @@
 package com.sendgrid.internal.exception;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,7 +20,9 @@ public class SendGridErrors {
 
 	@Override
 	public String toString() {
-		return "[Typed Errors = " + typedErrors + "]";
+		return toStringHelper(this)
+			.add("typedErrors", typedErrors)
+			.toString();
 	}
 
 }
