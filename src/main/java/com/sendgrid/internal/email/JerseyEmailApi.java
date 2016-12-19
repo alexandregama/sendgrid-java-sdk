@@ -17,11 +17,12 @@ class JerseyEmailApi implements EmailApi {
 	private static final String SENDGRID_API_SEND_EMAIL = "https://api.sendgrid.com/v3/mail/send";
 	private static final String AUTHORIZATION = "Authorization";
 	private final SendGridApiKey key;
-	
+
 	public JerseyEmailApi(SendGridApiKey key) {
 		this.key = key;
 	}
 
+	@Override
 	public void sendEmail(EmailPayload payload) {
 		Response response = ClientBuilder
 			.newClient()
@@ -30,10 +31,14 @@ class JerseyEmailApi implements EmailApi {
 			.header(AUTHORIZATION, "Bearer " + key.getApiKey())
 			.post(Entity.json(payload));
 
+		if (response.getStatusInfo().equals(Status.UNAUTHORIZED)) {
+			SendGridErrors errors = response.readEntity(SendGridErrors.class);
+			throw new SendGridException("Unauthorized user to send an email by SendGrid", errors);
+		}
 		if (response.getStatusInfo().equals(Status.BAD_REQUEST)) {
 			SendGridErrors errors = response.readEntity(SendGridErrors.class);
 			throw new SendGridException("Bad Request while trying to send an email by SendGrid", errors);
 		}
 	}
-	
+
 }

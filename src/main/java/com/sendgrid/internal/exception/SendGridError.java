@@ -1,15 +1,18 @@
 package com.sendgrid.internal.exception;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonInclude(Include.NON_NULL)
 public class SendGridError {
 
 	@JsonProperty(value = "message")
 	private String message;
-	
+
 	@JsonProperty(value = "field")
 	private String field;
-	
+
 	@JsonProperty(value = "help")
 	private String help;
 
@@ -17,24 +20,12 @@ public class SendGridError {
 		return message;
 	}
 
-	public void setMessage(String message) {
-		this.message = message;
-	}
-
 	public String getField() {
 		return field;
 	}
 
-	public void setField(String field) {
-		this.field = field;
-	}
-
 	public String getHelp() {
 		return help;
-	}
-
-	public void setHelp(String help) {
-		this.help = help;
 	}
 
 	@Override

@@ -18,7 +18,7 @@ public class SendGridException extends RuntimeException {
 		return message;
 	}
 	
-	public SendGridErrors getErrors() {
+	public SendGridErrors getSendGridErrors() {
 		return errors;
 	}
 
