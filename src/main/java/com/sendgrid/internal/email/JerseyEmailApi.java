@@ -7,7 +7,7 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static javax.ws.rs.core.Response.Status.Family.CLIENT_ERROR;
 import static javax.ws.rs.core.Response.Status.Family.SERVER_ERROR;
 
-import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 
 import com.sendgrid.api.client.EmailApi;
@@ -24,14 +24,16 @@ class JerseyEmailApi implements EmailApi {
 
 	private final SendGridApiKey key;
 
-	public JerseyEmailApi(SendGridApiKey key) {
+	private Client client;
+
+	public JerseyEmailApi(SendGridApiKey key, Client client) {
 		this.key = key;
+		this.client = client;
 	}
 
 	@Override
 	public void sendEmail(EmailPayload payload) {
-		Response response = ClientBuilder
-			.newClient()
+		Response response = client
 			.target(SENDGRID_API_SEND_EMAIL)
 			.request(APPLICATION_JSON)
 			.header(AUTHORIZATION, "Bearer " + key.getApiKey())
@@ -49,7 +51,6 @@ class JerseyEmailApi implements EmailApi {
 			SendGridErrors errors = response.readEntity(SendGridErrors.class);
 			throw new SendGridException("An error ocurred while trying to send an email by SendGrid", errors);
 		}
-
 		if (response.getStatusInfo().getFamily().equals(SERVER_ERROR)) {
 			SendGridErrors errors = response.readEntity(SendGridErrors.class);
 			throw new SendGridException("An error ocurred in the server while trying to send an email by SendGrid", errors);

@@ -2,11 +2,24 @@ package com.sendgrid.api.client;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.StringWriter;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -22,15 +35,36 @@ import com.sendgrid.internal.exception.SendGridException;
 public class EmailSenderTest {
 
 	private DefaultEmailClientApi client;
+	private SendGridApiKey key = new SendGridApiKey("whatever_key");
+	private Client mockedClient = Mockito.mock(Client.class);
 
 	@Before
 	public void setUp() {
 		SendGridApiKey key = new SendGridApiKey("YOUR_KEY");
-		client = new DefaultEmailClientApi(key);
+		client = DefaultEmailClientApi.withSecretKey(key).getApiAccess();
 	}
 
 	@Test
 	public void shouldSendAnEmailToSendGrid() throws Exception {
+		EmailPayload payload = createEmailWithValidPayload();
+
+		client = DefaultEmailClientApi.withSecretKey(key).overridingTheDefaultRestClientWith(mockedClient);
+		WebTarget webTarget = mock(WebTarget.class);
+		when(mockedClient.target("https://api.sendgrid.com/v3/mail/send")).thenReturn(webTarget);
+		Builder invocationBuilder = mock(Invocation.Builder.class);
+		when(webTarget.request(MediaType.APPLICATION_JSON)).thenReturn(invocationBuilder);
+		when(invocationBuilder.header("Authorization", "Bearer " + key.getApiKey())).thenReturn(invocationBuilder);
+		Response response = mock(Response.class);
+		when(invocationBuilder.post(Entity.json(payload))).thenReturn(response);
+		when(response.getStatusInfo()).thenReturn(Status.OK);
+
+		client.emailApi().sendEmail(payload);
+
+		verify(mockedClient).target("https://api.sendgrid.com/v3/mail/send");
+	}
+
+	@Test
+	public void shouldSendARealEmailToSendGrid() throws Exception {
 		EmailPayload payload = createEmailWithValidPayload();
 
 		client.emailApi().sendEmail(payload);
@@ -63,8 +97,8 @@ public class EmailSenderTest {
 
 	@Test
 	public void shouldThrowsAnUnauthorizedExceptionWithSendGridErrorsWhenUserIsNotAuthorized() throws Exception {
-		SendGridApiKey key = new SendGridApiKey("INVALID_KEY");
-		client = new DefaultEmailClientApi(key);
+		SendGridApiKey invalidKey = new SendGridApiKey("INVALID_KEY");
+		client = DefaultEmailClientApi.withSecretKey(invalidKey).getApiAccess();
 		EmailPayload payload = createEmailWithValidPayload();
 
 		try {
