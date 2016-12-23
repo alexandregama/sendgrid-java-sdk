@@ -7,6 +7,7 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static javax.ws.rs.core.Response.Status.Family.CLIENT_ERROR;
 import static javax.ws.rs.core.Response.Status.Family.SERVER_ERROR;
 
+import javax.validation.Validator;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 
@@ -15,6 +16,7 @@ import com.sendgrid.api.client.SendGridApiKey;
 import com.sendgrid.api.email.EmailPayload;
 import com.sendgrid.internal.exception.SendGridErrors;
 import com.sendgrid.internal.exception.SendGridException;
+import com.sendgrid.internal.validator.BeanValidatorFactory;
 
 class JerseyEmailApi implements EmailApi {
 
@@ -26,13 +28,18 @@ class JerseyEmailApi implements EmailApi {
 
 	private Client client;
 
+	private Validator validator;
+
 	public JerseyEmailApi(SendGridApiKey key, Client client) {
 		this.key = key;
 		this.client = client;
+		this.validator = BeanValidatorFactory.getValidator();
 	}
 
 	@Override
 	public void sendEmail(EmailPayload payload) {
+		validator.validate(payload);
+
 		Response response = client
 			.target(SENDGRID_API_SEND_EMAIL)
 			.request(APPLICATION_JSON)

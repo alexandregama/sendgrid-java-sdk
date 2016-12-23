@@ -39,11 +39,11 @@ public class EmailSenderTest {
 
 	private DefaultEmailClientApi client;
 
-	private EmailClientApi mockedClientApi;
+	private EmailClientApi clientApi;
 
 	private SendGridApiKey whateverKey = new SendGridApiKey("whatever_key");
 	@Mock
-	private Client mockedClient;
+	private Client restClient;
 	@Mock
 	private WebTarget webTarget;
 	@Mock
@@ -55,22 +55,22 @@ public class EmailSenderTest {
 	public void setUp() {
 		SendGridApiKey key = new SendGridApiKey("YOUR_KEY");
 		client = DefaultEmailClientApi.withSecretKey(key).getApiAccess();
-		mockedClientApi = DefaultEmailClientApi.withSecretKey(whateverKey).overridingTheDefaultRestClientWith(mockedClient);
+		clientApi = DefaultEmailClientApi.withSecretKey(whateverKey).overridingTheDefaultRestClientWith(restClient);
 	}
 
 	@Test
 	public void shouldSendAnEmailToSendGrid() throws Exception {
 		EmailPayload payload = createEmailWithValidPayload();
 
-		when(mockedClient.target(SENDGRID_API_SEND_EMAIL)).thenReturn(webTarget);
+		when(restClient.target(SENDGRID_API_SEND_EMAIL)).thenReturn(webTarget);
 		when(webTarget.request(APPLICATION_JSON)).thenReturn(invocationBuilder);
 		when(invocationBuilder.header("Authorization", "Bearer " + whateverKey.getApiKey())).thenReturn(invocationBuilder);
 		when(invocationBuilder.post(json(payload))).thenReturn(response);
 		when(response.getStatusInfo()).thenReturn(OK);
 
-		mockedClientApi.emailApi().sendEmail(payload);
+		clientApi.emailApi().sendEmail(payload);
 
-		verify(mockedClient).target("https://api.sendgrid.com/v3/mail/send");
+		verify(restClient).target("https://api.sendgrid.com/v3/mail/send");
 	}
 
 	@Test
@@ -78,31 +78,6 @@ public class EmailSenderTest {
 		EmailPayload payload = createEmailWithValidPayload();
 
 		client.emailApi().sendEmail(payload);
-	}
-
-	@Test(expected = SendGridException.class)
-	public void shouldThrowsAnExceptionWhenTryingToSendAnEmailWithoutEmailTo() throws Exception {
-		EmailPayload payload = createEmailWithoutEmailToPayload();
-
-		client.emailApi().sendEmail(payload);
-	}
-
-	@Test(expected = SendGridException.class)
-	public void shouldThrowsAnExceptionWhenTryingToSendAnEmailWithoutAFewInformations() throws Exception {
-		EmailPayload payload = createEmailWithoutInformationsOnPayload();
-
-		client.emailApi().sendEmail(payload);
-	}
-
-	@Test
-	public void shouldThrowsAnExceptionWithSendGridErrorsWhenTryingToSendAnEmailWithoutEmailTo() throws Exception {
-		EmailPayload payload = createEmailWithoutEmailToPayload();
-
-		try {
-			client.emailApi().sendEmail(payload);
-		} catch (SendGridException e) {
-			System.out.println(e.getSendGridErrors());
-		}
 	}
 
 	@Test
@@ -141,52 +116,6 @@ public class EmailSenderTest {
 
 		EmailInformation emailTo = new EmailInformation();
 		emailTo.setEmail("alexandre.gama@elo7.com");
-		emailTo.setName("Gama");
-		personalization.addEmailTo(emailTo);
-
-		payload.addPersonalization(personalization);
-
-		payload.setSubject("Its working man!");
-
-		EmailContent content = new EmailContent();
-		content.setType(EmailMimeType.TEXT_HTML);
-		content.setValue("Its really awesome");
-		payload.addContent(content);
-		return payload;
-	}
-
-	private EmailPayload createEmailWithoutEmailToPayload() {
-		EmailPayload payload = new EmailPayload();
-		EmailInformation emailFrom = new EmailInformation();
-		emailFrom.setEmail("alexandre.gama.lima@gmail.com");
-		payload.setEmailFrom(emailFrom);
-
-		Personalization personalization = new Personalization();
-
-		EmailInformation emailTo = new EmailInformation();
-		emailTo.setName("Gama");
-		personalization.addEmailTo(emailTo);
-
-		payload.addPersonalization(personalization);
-
-		payload.setSubject("Its working man!");
-
-		EmailContent content = new EmailContent();
-		content.setType(EmailMimeType.TEXT_HTML);
-		content.setValue("Its really awesome");
-		payload.addContent(content);
-		return payload;
-	}
-
-	private EmailPayload createEmailWithoutInformationsOnPayload() {
-		EmailPayload payload = new EmailPayload();
-		EmailInformation emailFrom = new EmailInformation();
-		emailFrom.setEmail("alexandre.gama.lima@gmail.com");
-		payload.setEmailFrom(emailFrom);
-
-		Personalization personalization = new Personalization();
-
-		EmailInformation emailTo = new EmailInformation();
 		emailTo.setName("Gama");
 		personalization.addEmailTo(emailTo);
 
