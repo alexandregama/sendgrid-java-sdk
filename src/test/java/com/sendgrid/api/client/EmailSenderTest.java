@@ -2,7 +2,11 @@ package com.sendgrid.api.client;
 
 import static javax.ws.rs.client.Entity.json;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static javax.ws.rs.core.Response.Status.Family.CLIENT_ERROR;
+import static javax.ws.rs.core.Response.Status.Family.SERVER_ERROR;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
@@ -14,6 +18,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.StatusType;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -48,6 +53,8 @@ public class EmailSenderTest {
 	private WebTarget webTarget;
 	@Mock
 	private Builder invocationBuilder;
+	@Mock
+	private StatusType statusType;
 	@Mock
 	private Response response;
 
@@ -92,6 +99,60 @@ public class EmailSenderTest {
 			SendGridError sendGridError = e.getSendGridErrors().getTypedErrors().get(0);
 			assertThat(sendGridError.getMessage(), equalTo("The provided authorization grant is invalid, expired, or revoked"));
 		}
+	}
+
+	@Test(expected = SendGridException.class)
+	public void shouldThowsAnSendGridExceptionWhenResponseCodeIsBadRequest() throws Exception {
+		EmailPayload payload = createEmailWithValidPayload();
+
+		when(restClient.target(SENDGRID_API_SEND_EMAIL)).thenReturn(webTarget);
+		when(webTarget.request(APPLICATION_JSON)).thenReturn(invocationBuilder);
+		when(invocationBuilder.header("Authorization", "Bearer " + whateverKey.getApiKey())).thenReturn(invocationBuilder);
+		when(invocationBuilder.post(json(payload))).thenReturn(response);
+		when(response.getStatusInfo()).thenReturn(BAD_REQUEST);
+
+		clientApi.emailApi().sendEmail(payload);
+	}
+
+	@Test(expected = SendGridException.class)
+	public void shouldThowsAnSendGridExceptionWhenResponseCodeIsUnauthorized() throws Exception {
+		EmailPayload payload = createEmailWithValidPayload();
+
+		when(restClient.target(SENDGRID_API_SEND_EMAIL)).thenReturn(webTarget);
+		when(webTarget.request(APPLICATION_JSON)).thenReturn(invocationBuilder);
+		when(invocationBuilder.header("Authorization", "Bearer " + whateverKey.getApiKey())).thenReturn(invocationBuilder);
+		when(invocationBuilder.post(json(payload))).thenReturn(response);
+		when(response.getStatusInfo()).thenReturn(UNAUTHORIZED);
+
+		clientApi.emailApi().sendEmail(payload);
+	}
+
+	@Test(expected = SendGridException.class)
+	public void shouldThowsAnSendGridExceptionWhenResponseFamilyCodeIsClientError() throws Exception {
+		EmailPayload payload = createEmailWithValidPayload();
+
+		when(restClient.target(SENDGRID_API_SEND_EMAIL)).thenReturn(webTarget);
+		when(webTarget.request(APPLICATION_JSON)).thenReturn(invocationBuilder);
+		when(invocationBuilder.header("Authorization", "Bearer " + whateverKey.getApiKey())).thenReturn(invocationBuilder);
+		when(invocationBuilder.post(json(payload))).thenReturn(response);
+		when(response.getStatusInfo()).thenReturn(statusType);
+		when(statusType.getFamily()).thenReturn(CLIENT_ERROR);
+
+		clientApi.emailApi().sendEmail(payload);
+	}
+
+	@Test(expected = SendGridException.class)
+	public void shouldThowsAnSendGridExceptionWhenResponseFamilyCodeIsServerError() throws Exception {
+		EmailPayload payload = createEmailWithValidPayload();
+
+		when(restClient.target(SENDGRID_API_SEND_EMAIL)).thenReturn(webTarget);
+		when(webTarget.request(APPLICATION_JSON)).thenReturn(invocationBuilder);
+		when(invocationBuilder.header("Authorization", "Bearer " + whateverKey.getApiKey())).thenReturn(invocationBuilder);
+		when(invocationBuilder.post(json(payload))).thenReturn(response);
+		when(response.getStatusInfo()).thenReturn(statusType);
+		when(statusType.getFamily()).thenReturn(SERVER_ERROR);
+
+		clientApi.emailApi().sendEmail(payload);
 	}
 
 	@Test
